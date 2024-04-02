@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "UserRole" AS ENUM ('SUPER_ADMIN', 'DOCTOR', 'ADMIN', 'PAITIENT');
+CREATE TYPE "UserRole" AS ENUM ('SUPER_ADMIN', 'DOCTOR', 'ADMIN', 'PATIENT');
 
 -- CreateEnum
 CREATE TYPE "UserStatus" AS ENUM ('ACTIVE', 'BLOCKED');
