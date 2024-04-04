@@ -1,39 +1,19 @@
-import { Admin, Prisma, PrismaClient, UserStatus } from "@prisma/client"
-import { adminSearchAbleFields } from "./admin.constants";
-import { calculatePagination } from "../../../utils/pagination";
-import { prisma } from "../../../shared/prisma";
-import { TAdminFilterRequest } from "./admin.interface";
-import { TPaginationOptions } from "../../interfaces/pagination.interface";
+import { Admin, Prisma, UserStatus } from "@prisma/client";
+import { adminSearchAbleFields } from "./admin.constant";
+import { paginationHelper } from "../../../helpars/paginationHelper";
+import prisma from "../../../shared/prisma";
+import { IAdminFilterRequest } from "./admin.interface";
+import { IPaginationOptions } from "../../interfaces/pagination";
 
+const getAllFromDB = async (params: IAdminFilterRequest, options: IPaginationOptions) => {
+    const { page, limit, skip } = paginationHelper.calculatePagination(options);
+    const { searchTerm, ...filterData } = params;
 
+    const andCondions: Prisma.AdminWhereInput[] = [];
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-const getAllAdminsFromDb = async (params: TAdminFilterRequest, options: TPaginationOptions) => {
-    const { skip, limit, page } = calculatePagination(options);
-
-    const { searchTerm, ...filteredData } = params;
-
-
-    const conditions: Prisma.AdminWhereInput[] = [];
+    //console.log(filterData);
     if (params.searchTerm) {
-        conditions.push({
+        andCondions.push({
             OR: adminSearchAbleFields.map(field => ({
                 [field]: {
                     contains: params.searchTerm,
@@ -41,23 +21,27 @@ const getAllAdminsFromDb = async (params: TAdminFilterRequest, options: TPaginat
                 }
             }))
         })
-    }
+    };
 
-    if (Object.keys(filteredData).length > 0) {
-        conditions.push({
-            AND: Object.keys(filteredData).map(key => ({
+    if (Object.keys(filterData).length > 0) {
+        andCondions.push({
+            AND: Object.keys(filterData).map(key => ({
                 [key]: {
-                    equals: (filteredData as any)[key]
+                    equals: (filterData as any)[key]
                 }
             }))
         })
-    }
+    };
 
-    const whereConditions: Prisma.AdminWhereInput = {
-        AND: conditions
-    }
+    andCondions.push({
+        isDeleted: false
+    })
+
+    //console.dir(andCondions, { depth: 'inifinity' })
+    const whereConditons: Prisma.AdminWhereInput = { AND: andCondions }
+
     const result = await prisma.admin.findMany({
-        where: whereConditions,
+        where: whereConditons,
         skip,
         take: limit,
         orderBy: options.sortBy && options.sortOrder ? {
@@ -65,54 +49,50 @@ const getAllAdminsFromDb = async (params: TAdminFilterRequest, options: TPaginat
         } : {
             createdAt: 'desc'
         }
-    })
+    });
 
     const total = await prisma.admin.count({
-        where: whereConditions
-    })
-    return {
+        where: whereConditons
+    });
 
+    return {
         meta: {
             page,
             limit,
             total
-        }, data: {
-            result
-        }
+        },
+        data: result
     };
-}
+};
 
-
-
-const getSingleAdmin = async (id: string) => {
+const getByIdFromDB = async (id: string): Promise<Admin | null> => {
     const result = await prisma.admin.findUnique({
         where: {
-            id
+            id,
+            isDeleted: false
+        }
+    })
+
+    return result;
+};
+
+const updateIntoDB = async (id: string, data: Partial<Admin>): Promise<Admin> => {
+    await prisma.admin.findUniqueOrThrow({
+        where: {
+            id,
+            isDeleted: false
         }
     });
 
-    return result;
-}
-
-
-const updateInDB = async (id: string, payload: Partial<Admin>) => {
-    await prisma.admin.findUniqueOrThrow({
-        where: {
-            id
-        }
-    })
     const result = await prisma.admin.update({
         where: {
             id
         },
-        data: payload
-    })
+        data
+    });
+
     return result;
-}
-
-
-
-
+};
 
 const deleteFromDB = async (id: string): Promise<Admin | null> => {
 
@@ -176,14 +156,10 @@ const softDeleteFromDB = async (id: string): Promise<Admin | null> => {
 }
 
 
-
-
-export const adminServices = {
-    getAllAdminsFromDb,
-    getSingleAdmin,
-    updateInDB,
+export const AdminService = {
+    getAllFromDB,
+    getByIdFromDB,
+    updateIntoDB,
     deleteFromDB,
     softDeleteFromDB
 }
-
-

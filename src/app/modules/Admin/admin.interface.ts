@@ -1,4 +1,4 @@
-export type TAdminFilterRequest = {
+export type IAdminFilterRequest = {
     name?: string | undefined;
     email?: string | undefined;
     contactNumber?: string | undefined;
