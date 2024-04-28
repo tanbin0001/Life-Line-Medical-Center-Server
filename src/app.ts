@@ -1,48 +1,55 @@
-
-import express, { Application, NextFunction, Request, Response } from "express";
-import cors from 'cors'
-
-import router from "./app/routes";
-import globalErrorHandler from "./app/middleware/globalErrorHandler";
-import httpStatus from "http-status";
-import cookieParser from "cookie-parser";
-
-
-
-
+import cors from 'cors';
+import express, { Application, NextFunction, Request, Response } from 'express';
+import httpStatus from 'http-status';
+import globalErrorHandler from './app/middlewares/globalErrorHandler';
+import routes from './app/routes';
+import cookieParser from 'cookie-parser';
+import cron from 'node-cron';
+import { AppointmentServices } from './app/modules/appointment/appointment.services';
+import { errorlogger } from './shared/logger';
 
 const app: Application = express();
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }))
-app.use(cookieParser())
 
-app.get('/', (req: Request, res: Response) => {
-    res.send({
-        Message: "lifeline medical server"
-    })
+app.use(cors());
+app.use(cookieParser());
+
+//parser
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.use('/api/v1', routes);
+
+app.get('/test', async (req: Request, res: Response) => {
+  res.status(200).json({
+    message: 'Server working....!',
+  });
 });
 
-
-
-
-
-app.use('/api/v1', router);
-app.use(globalErrorHandler)
-
-
-
-app.use((req: Request, res: Response, next: NextFunction) => {
-    res.status(httpStatus.NOT_FOUND).json({
-        success: false,
-        message: "API NOT FOUND!",
-        error: {
-            path: req.originalUrl,
-            message: "Your requested path is not found!"
-        }
-    })
+// Schedule to run every minute
+cron.schedule('* * * * *', async (): Promise<void> => {
+  try {
+    await AppointmentServices.cancelUnpaidAppointments();
+  } catch (error) {
+    errorlogger.error(error);
+  }
 })
 
+//global error handler
+app.use(globalErrorHandler);
 
+//handle not found
+app.use((req: Request, res: Response, next: NextFunction) => {
+  res.status(httpStatus.NOT_FOUND).json({
+    success: false,
+    message: 'Not Found',
+    errorMessages: [
+      {
+        path: req.originalUrl,
+        message: 'API Not Found',
+      },
+    ],
+  });
+  next();
+});
 
 export default app;

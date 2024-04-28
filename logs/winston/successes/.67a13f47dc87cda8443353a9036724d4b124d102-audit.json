@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "E:\\Level -2 Projects\\Full Stack Project\\LifeLine Medical Center\\LIfe line mediical center server\\logs\\winston\\successes\\.67a13f47dc87cda8443353a9036724d4b124d102-audit.json",
+    "files": [
+        {
+            "date": 1714163443995,
+            "name": "E:\\Level -2 Projects\\Full Stack Project\\LifeLine Medical Center\\LIfe line mediical center server\\logs\\winston\\successes\\phu-2024-26-04-14-success.log",
+            "hash": "6420747a11f5b2b954db30e7d9653b43ef12c6ffd1a40827cc938747c48c35a7"
+        }
+    ],
+    "hashType": "sha256"
+}

@@ -1,13 +1,7 @@
+export const adminSearchableFields: string[] = ['name', 'email', 'contactNo'];
 
-
-
-
-
-
-
-
-
-
-export const adminFilterAbleFields = ['name', 'email', 'searchTerm', 'contactNumber']
-
-export const adminSearchAbleFields = ['name', 'email', 'contactNumber']
+export const adminFilterableFields: string[] = [
+  'searchTerm',
+  'email',
+  'contactNo',
+];

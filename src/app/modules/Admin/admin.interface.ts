@@ -1,6 +1,5 @@
-export type TAdminFilterRequest = {
-    name?: string | undefined;
-    email?: string | undefined;
-    contactNumber?: string | undefined;
-    searchTerm?: string | undefined;
-}
+export type IAdminFilterRequest = {
+  searchTerm?: string | undefined;
+  email?: string | undefined;
+  contactNo?: string | undefined;
+};
